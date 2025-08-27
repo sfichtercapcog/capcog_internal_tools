@@ -49,7 +49,6 @@ const MEETING_DATES = [
   "02-11-2026",
 ];
 
-// Non-permitted words (stop words) to be stripped from titles
 const STOP_WORDS = [
   "the",
   "a",
@@ -127,7 +126,6 @@ function generateTitle(description: string): {
 } {
   if (!description.trim()) return { title: "", wasTruncated: false };
 
-  // Split into words and filter out stop words
   const words = description
     .toLowerCase()
     .replace(/[^a-z0-9\-\s]/g, " ")
@@ -136,7 +134,6 @@ function generateTitle(description: string): {
 
   if (words.length === 0) return { title: "", wasTruncated: false };
 
-  // Build title up to 25 characters, ensuring we don't break words
   let title = "";
   let wasTruncated = false;
 
@@ -198,10 +195,9 @@ export default function HomePage() {
   };
 
   const addAttachment = () => {
-    // Only allow adding if the last attachment has both file and keyword
     const lastAttachment = attachments[attachments.length - 1];
     if (lastAttachment && (!lastAttachment.file || !lastAttachment.keyword)) {
-      return; // Don't add if last attachment is incomplete
+      return;
     }
     setAttachments([...attachments, { file: null, keyword: "" }]);
   };
@@ -221,7 +217,7 @@ export default function HomePage() {
       const ext = agendaFile.name.split(".").pop();
       files.push({
         old: agendaFile.name,
-        new: `as_${meetingDate}_${agendaTitle}.${ext}`,
+        new: `AS_${meetingDate}_${agendaTitle}.${ext}`,
       });
     }
     attachments.forEach((att, i) => {
@@ -230,7 +226,7 @@ export default function HomePage() {
         const sanitizedKeyword = sanitizeForFilename(att.keyword);
         files.push({
           old: att.file.name,
-          new: `att${
+          new: `ATT${
             i + 1
           }_${meetingDate}_${agendaTitle}_${sanitizedKeyword}.${ext}`,
         });
@@ -250,12 +246,12 @@ export default function HomePage() {
 
       const zip = new JSZip();
       const agendaExt = agendaFile.name.split(".").pop();
-      zip.file(`as_${meetingDate}_${agendaTitle}.${agendaExt}`, agendaFile);
+      zip.file(`AS_${meetingDate}_${agendaTitle}.${agendaExt}`, agendaFile);
       attachments.forEach((att, i) => {
         const ext = att.file!.name.split(".").pop();
         const sanitizedKeyword = sanitizeForFilename(att.keyword);
         zip.file(
-          `att${
+          `ATT${
             i + 1
           }_${meetingDate}_${agendaTitle}_${sanitizedKeyword}.${ext}`,
           att.file as File
@@ -488,7 +484,7 @@ export default function HomePage() {
                 <TooltipContent>
                   <p>
                     Add supporting documents with unique keywords. Files will be
-                    named as att1, att2, etc. with your keywords. You must
+                    named as ATT1, ATT2, etc. with your keywords. You must
                     complete each attachment (file + keyword) before adding
                     another.
                   </p>
@@ -507,7 +503,6 @@ export default function HomePage() {
               >
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-start gap-3">
-                    {/* Reorder controls */}
                     {attachments.length > 1 && (
                       <div className="flex flex-col gap-1 pt-6">
                         <Button
@@ -537,7 +532,7 @@ export default function HomePage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-3">
                         <span className="text-xs font-medium text-slate-500 bg-slate-200 px-2 py-1 rounded">
-                          att{idx + 1}
+                          ATT{idx + 1}
                         </span>
                         {attachments.length > 1 && (
                           <Button
@@ -720,7 +715,7 @@ export default function HomePage() {
                           </div>
                           <div className="text-xs text-slate-400 mt-1">→</div>
                           <div className="font-mono text-slate-800 bg-slate-100 px-2 py-1 rounded text-xs mt-1">
-                            {`as_${meetingDate}_${agendaTitle}.${agendaFile.name
+                            {`AS_${meetingDate}_${agendaTitle}.${agendaFile.name
                               .split(".")
                               .pop()}`}
                           </div>
@@ -731,21 +726,21 @@ export default function HomePage() {
                   )}
 
                   {/* Attachments Section */}
-                  {renamedFiles.filter((f) => f.new.startsWith("att")).length >
+                  {renamedFiles.filter((f) => f.new.startsWith("ATT")).length >
                     0 && (
                     <div className="space-y-3">
                       <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                         <div className="w-4 h-4 bg-purple-500 rounded-sm"></div>
                         Attachments (
                         {
-                          renamedFiles.filter((f) => f.new.startsWith("att"))
+                          renamedFiles.filter((f) => f.new.startsWith("ATT"))
                             .length
                         }
                         )
                       </h4>
                       <div className="space-y-2">
                         {renamedFiles
-                          .filter((f) => f.new.startsWith("att"))
+                          .filter((f) => f.new.startsWith("ATT"))
                           .map((f) => (
                             <div
                               key={f.old}
