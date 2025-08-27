@@ -1,21 +1,38 @@
 "use client";
 import React, { useRef, useState } from "react";
 import JSZip from "jszip";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileIcon, DownloadIcon, PlusIcon, XIcon, AlertCircleIcon, CheckCircleIcon, UploadCloudIcon } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  FileIcon,
+  DownloadIcon,
+  PlusIcon,
+  XIcon,
+  AlertCircleIcon,
+  CheckCircleIcon,
+  UploadCloudIcon,
+} from "lucide-react";
 
-const MEETING_TYPES = [
-  "CAECD Board of Managers",
-  "CAPCOG Executive Committee",
-];
+const MEETING_TYPES = ["CAECD Board of Managers", "CAPCOG Executive Committee"];
 
 const MEETING_DATES = [
   "09-17-2025",
-  "10-08-2025",
+  "10-15-2025",
   "11-12-2025",
   "12-10-2025",
   "01-14-2026",
@@ -23,9 +40,24 @@ const MEETING_DATES = [
 ];
 
 const COMMON_KEYWORDS = [
-  "budget", "map", "grant", "application", "transportation",
-  "public comments", "conformance", "review", "narrative", "plan", "audit", "election",
-  "committee", "funding", "amendment", "position", "presentation", "procurement"
+  "budget",
+  "map",
+  "grant",
+  "application",
+  "transportation",
+  "public comments",
+  "conformance",
+  "review",
+  "narrative",
+  "plan",
+  "audit",
+  "election",
+  "committee",
+  "funding",
+  "amendment",
+  "position",
+  "presentation",
+  "procurement",
 ];
 
 function sanitizeForFilename(str: string) {
@@ -38,10 +70,12 @@ function sanitizeForFilename(str: string) {
 
 function suggestKeyword(description: string) {
   if (!description) return "";
-  const found = COMMON_KEYWORDS.find(kw =>
+  const found = COMMON_KEYWORDS.find((kw) =>
     description.toLowerCase().includes(kw)
   );
-  return found ? found : sanitizeForFilename(description.split(" ")[0] || "item");
+  return found
+    ? found
+    : sanitizeForFilename(description.split(" ")[0] || "item");
 }
 
 type AttachmentInput = {
@@ -58,7 +92,9 @@ export default function HomePage() {
   const [attachments, setAttachments] = useState<AttachmentInput[]>([
     { file: null, keyword: "" },
   ]);
-  const [renamedFiles, setRenamedFiles] = useState<{ old: string; new: string }[]>([]);
+  const [renamedFiles, setRenamedFiles] = useState<
+    { old: string; new: string }[]
+  >([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -79,7 +115,11 @@ export default function HomePage() {
   const removeAttachment = (idx: number) => {
     if (attachmentInputRefs.current[idx])
       attachmentInputRefs.current[idx]!.value = "";
-    setAttachments(attachments.length > 1 ? attachments.filter((_, i) => i !== idx) : attachments);
+    setAttachments(
+      attachments.length > 1
+        ? attachments.filter((_, i) => i !== idx)
+        : attachments
+    );
   };
 
   React.useEffect(() => {
@@ -96,7 +136,9 @@ export default function HomePage() {
         const ext = att.file.name.split(".").pop();
         files.push({
           old: att.file.name,
-          new: `ATT${i + 1}_${meetingDate}_${sanitizeForFilename(att.keyword)}.${ext}`,
+          new: `ATT${i + 1}_${meetingDate}_${sanitizeForFilename(
+            att.keyword
+          )}.${ext}`,
         });
       }
     });
@@ -109,7 +151,7 @@ export default function HomePage() {
     try {
       if (!agendaFile || !agendaTitle)
         throw new Error("Agenda summary file and title required.");
-      if (attachments.some(a => !a.file || !a.keyword))
+      if (attachments.some((a) => !a.file || !a.keyword))
         throw new Error("All attachments must have file and keyword.");
 
       const zip = new JSZip();
@@ -121,7 +163,9 @@ export default function HomePage() {
       attachments.forEach((att, i) => {
         const ext = att.file!.name.split(".").pop();
         zip.file(
-          `ATT${i + 1}_${meetingDate}_${sanitizeForFilename(att.keyword)}.${ext}`,
+          `ATT${i + 1}_${meetingDate}_${sanitizeForFilename(
+            att.keyword
+          )}.${ext}`,
           att.file as File
         );
       });
@@ -159,13 +203,18 @@ export default function HomePage() {
         <CardContent className="space-y-4 pt-0">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="meeting-type" className="text-slate-700 font-medium">Meeting Type</Label>
+              <Label
+                htmlFor="meeting-type"
+                className="text-slate-700 font-medium"
+              >
+                Meeting Type
+              </Label>
               <Select value={meetingType} onValueChange={setMeetingType}>
                 <SelectTrigger id="meeting-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {MEETING_TYPES.map(type => (
+                  {MEETING_TYPES.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}
                     </SelectItem>
@@ -174,13 +223,18 @@ export default function HomePage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="meeting-date" className="text-slate-700 font-medium">Meeting Date</Label>
+              <Label
+                htmlFor="meeting-date"
+                className="text-slate-700 font-medium"
+              >
+                Meeting Date
+              </Label>
               <Select value={meetingDate} onValueChange={setMeetingDate}>
                 <SelectTrigger id="meeting-date">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {MEETING_DATES.map(date => (
+                  {MEETING_DATES.map((date) => (
                     <SelectItem key={date} value={date}>
                       {date}
                     </SelectItem>
@@ -206,14 +260,16 @@ export default function HomePage() {
         </CardHeader>
         <CardContent className="space-y-4 pt-0">
           <div className="space-y-2">
-            <Label htmlFor="agenda-file" className="text-slate-700 font-medium">Agenda Summary File</Label>
+            <Label htmlFor="agenda-file" className="text-slate-700 font-medium">
+              Agenda Summary File
+            </Label>
             <div className="relative flex items-center gap-3">
               <input
                 ref={agendaInputRef}
                 id="agenda-file"
                 type="file"
                 accept=".doc,.docx,.pdf"
-                onChange={e => setAgendaFile(e.target.files?.[0] || null)}
+                onChange={(e) => setAgendaFile(e.target.files?.[0] || null)}
                 className="hidden"
               />
               <Button
@@ -228,7 +284,9 @@ export default function HomePage() {
               {agendaFile && (
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <FileIcon className="w-4 h-4" />
-                  <span className="truncate max-w-[160px]">{agendaFile.name}</span>
+                  <span className="truncate max-w-[160px]">
+                    {agendaFile.name}
+                  </span>
                   <Button
                     type="button"
                     size="icon"
@@ -236,7 +294,8 @@ export default function HomePage() {
                     className="text-red-500 hover:text-red-600 hover:bg-red-50"
                     onClick={() => {
                       setAgendaFile(null);
-                      if (agendaInputRef.current) agendaInputRef.current.value = "";
+                      if (agendaInputRef.current)
+                        agendaInputRef.current.value = "";
                     }}
                   >
                     <XIcon className="w-4 h-4" />
@@ -246,26 +305,35 @@ export default function HomePage() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="agenda-desc" className="text-slate-700 font-medium">Short Description</Label>
+            <Label htmlFor="agenda-desc" className="text-slate-700 font-medium">
+              Short Description
+            </Label>
             <Input
               id="agenda-desc"
               type="text"
               placeholder="E.g., Regional Grant Application"
               maxLength={250}
               value={agendaDesc}
-              onChange={e => setAgendaDesc(e.target.value)}
+              onChange={(e) => setAgendaDesc(e.target.value)}
             />
             <p className="text-xs text-slate-500">Maximum 50 words</p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="agenda-title" className="text-slate-700 font-medium">Suggested Title</Label>
+            <Label
+              htmlFor="agenda-title"
+              className="text-slate-700 font-medium"
+            >
+              Suggested Title
+            </Label>
             <Input
               id="agenda-title"
               type="text"
               value={agendaTitle}
-              onChange={e => setAgendaTitle(e.target.value)}
+              onChange={(e) => setAgendaTitle(e.target.value)}
             />
-            <p className="text-xs text-slate-500">Auto-filled from your description. You can edit if needed.</p>
+            <p className="text-xs text-slate-500">
+              Auto-filled from your description. You can edit if needed.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -288,23 +356,34 @@ export default function HomePage() {
               <CardContent className="pt-4 pb-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor={`attachment-file-${idx}`} className="text-slate-700 font-medium">Attachment File</Label>
+                    <Label
+                      htmlFor={`attachment-file-${idx}`}
+                      className="text-slate-700 font-medium"
+                    >
+                      Attachment File
+                    </Label>
                     <div className="relative flex items-center gap-3">
                       <input
-                        ref={el => { attachmentInputRefs.current[idx] = el; }}
+                        ref={(el) => {
+                          attachmentInputRefs.current[idx] = el;
+                        }}
                         id={`attachment-file-${idx}`}
                         type="file"
                         accept=".doc,.docx,.pdf"
-                        onChange={e => {
+                        onChange={(e) => {
                           const file = e.target.files?.[0] || null;
-                          setAttachments(atts => atts.map((a, i) => i === idx ? { ...a, file } : a));
+                          setAttachments((atts) =>
+                            atts.map((a, i) => (i === idx ? { ...a, file } : a))
+                          );
                         }}
                         className="hidden"
                       />
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => attachmentInputRefs.current[idx]?.click()}
+                        onClick={() =>
+                          attachmentInputRefs.current[idx]?.click()
+                        }
                         className="flex items-center gap-2"
                       >
                         <UploadCloudIcon className="w-4 h-4" />
@@ -313,15 +392,19 @@ export default function HomePage() {
                       {att.file && (
                         <div className="flex items-center gap-2 text-sm text-slate-600">
                           <FileIcon className="w-4 h-4" />
-                          <span className="truncate max-w-[160px]">{att.file.name}</span>
+                          <span className="truncate max-w-[160px]">
+                            {att.file.name}
+                          </span>
                           <Button
                             type="button"
                             size="icon"
                             variant="ghost"
                             className="text-red-500 hover:text-red-600 hover:bg-red-50"
                             onClick={() => {
-                              setAttachments(atts =>
-                                atts.map((a, i) => i === idx ? { ...a, file: null } : a)
+                              setAttachments((atts) =>
+                                atts.map((a, i) =>
+                                  i === idx ? { ...a, file: null } : a
+                                )
                               );
                               if (attachmentInputRefs.current[idx])
                                 attachmentInputRefs.current[idx]!.value = "";
@@ -334,7 +417,12 @@ export default function HomePage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor={`attachment-keyword-${idx}`} className="text-slate-700 font-medium">Keyword</Label>
+                    <Label
+                      htmlFor={`attachment-keyword-${idx}`}
+                      className="text-slate-700 font-medium"
+                    >
+                      Keyword
+                    </Label>
                     <div className="flex gap-2">
                       <Input
                         id={`attachment-keyword-${idx}`}
@@ -342,9 +430,11 @@ export default function HomePage() {
                         placeholder="E.g., map, budget, narrative"
                         maxLength={20}
                         value={att.keyword}
-                        onChange={e =>
-                          setAttachments(atts =>
-                            atts.map((a, i) => i === idx ? { ...a, keyword: e.target.value } : a)
+                        onChange={(e) =>
+                          setAttachments((atts) =>
+                            atts.map((a, i) =>
+                              i === idx ? { ...a, keyword: e.target.value } : a
+                            )
                           )
                         }
                         className="flex-1"
@@ -398,8 +488,11 @@ export default function HomePage() {
                 <p className="text-sm">No files uploaded yet</p>
               </div>
             ) : (
-              renamedFiles.map(f => (
-                <div key={f.old} className="flex items-center gap-3 p-3 bg-white rounded-md border border-slate-200 shadow-sm">
+              renamedFiles.map((f) => (
+                <div
+                  key={f.old}
+                  className="flex items-center gap-3 p-3 bg-white rounded-md border border-slate-200 shadow-sm"
+                >
                   <div className="flex-1 text-sm">
                     <div className="text-slate-600 font-medium">{f.old}</div>
                     <div className="text-xs text-slate-400 mt-1">→</div>
@@ -429,7 +522,7 @@ export default function HomePage() {
               loading ||
               !agendaFile ||
               !agendaTitle ||
-              attachments.some(a => !a.file || !a.keyword)
+              attachments.some((a) => !a.file || !a.keyword)
             }
             className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-6 text-lg shadow-lg disabled:opacity-50 transition-all duration-200"
             size="lg"

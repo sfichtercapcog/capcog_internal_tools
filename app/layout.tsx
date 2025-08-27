@@ -2,10 +2,15 @@ import "./globals.css";
 
 export const metadata = {
   title: "CAPCOG Internal Tools",
-  description: "Automated workflows for CAPCOG staff to improve accuracy and save time."
+  description:
+    "Automated workflows for CAPCOG staff to improve accuracy and save time.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body className="min-h-screen bg-slate-100">
