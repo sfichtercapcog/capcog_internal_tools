@@ -28,6 +28,7 @@ A modern Next.js application designed to standardize and automate file naming fo
 - ✅ **Standardized File Naming**: Automatically generates clean, consistent file names following organizational conventions
 - ✅ **Meeting Type & Date Selection**: Pre-configured options for CAECD Board of Managers and CAPCOG Executive Committee meetings
 - ✅ **Intelligent Title Generation**: Rules-based title creation with stop-word filtering and 25-character limit
+- ✅ **Progressive Workflow**: Step 3 (Attachments) is disabled until Step 2 (Agenda Summary) is completed
 - ✅ **Attachment Management**: Support for multiple attachments with unique keywords and sequential numbering
 - ✅ **Real-time Preview**: Live preview of renamed files before download
 - ✅ **Drag & Drop Reordering**: Intuitive attachment reordering to control ATT1, ATT2, etc. sequence
@@ -108,9 +109,11 @@ npm start
 - Provide a brief description (50 character maximum)
 - The system automatically generates a clean title using your description
 - Watch for truncation warnings if your description is too long
+- **Required**: This step must be completed before attachments can be added
 
 #### Step 3: Attachments
 
+- **Prerequisites**: Complete Step 2 (Agenda Summary) first to unlock this section
 - Add supporting documents with descriptive keywords
 - Each attachment gets a sequential number (ATT1, ATT2, etc.)
 - Use the up/down arrows to reorder attachments as needed

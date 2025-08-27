@@ -470,7 +470,11 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
+        <Card
+          className={`shadow-lg border-0 bg-white/95 backdrop-blur-sm ${
+            !agendaFile || !agendaTitle ? "opacity-50" : ""
+          }`}
+        >
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-3 text-slate-800">
               <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">
@@ -486,184 +490,204 @@ export default function HomePage() {
                     Add supporting documents with unique keywords. Files will be
                     named as ATT1, ATT2, etc. with your keywords. You must
                     complete each attachment (file + keyword) before adding
-                    another.
+                    another. Complete the agenda summary first to enable this
+                    section.
                   </p>
                 </TooltipContent>
               </Tooltip>
             </CardTitle>
             <CardDescription className="text-slate-600">
-              Add supporting documents with descriptive keywords
+              {!agendaFile || !agendaTitle
+                ? "Complete the agenda summary above to add attachments"
+                : "Add supporting documents with descriptive keywords"}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-0">
-            {attachments.map((att, idx) => (
-              <Card
-                key={idx}
-                className="border border-slate-200 bg-slate-50/50"
-              >
-                <CardContent className="pt-4 pb-4">
-                  <div className="flex items-start gap-3">
-                    {attachments.length > 1 && (
-                      <div className="flex flex-col gap-1 pt-6">
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6 text-slate-400 hover:text-slate-600"
-                          onClick={() => moveAttachment(idx, idx - 1)}
-                          disabled={idx === 0}
-                        >
-                          <ChevronUpIcon className="w-3 h-3" />
-                        </Button>
-                        <GripVerticalIcon className="w-4 h-4 text-slate-300 mx-auto" />
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6 text-slate-400 hover:text-slate-600"
-                          onClick={() => moveAttachment(idx, idx + 1)}
-                          disabled={idx === attachments.length - 1}
-                        >
-                          <ChevronDownIcon className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    )}
-
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-xs font-medium text-slate-500 bg-slate-200 px-2 py-1 rounded">
-                          ATT{idx + 1}
-                        </span>
+            {!agendaFile || !agendaTitle ? (
+              <div className="text-center py-12 text-slate-400">
+                <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileIcon className="w-8 h-8 text-slate-300" />
+                </div>
+                <p className="text-sm font-medium">
+                  Complete Agenda Summary First
+                </p>
+                <p className="text-xs mt-1">
+                  Upload and describe your agenda file to unlock attachments
+                </p>
+              </div>
+            ) : (
+              <>
+                {attachments.map((att, idx) => (
+                  <Card
+                    key={idx}
+                    className="border border-slate-200 bg-slate-50/50"
+                  >
+                    <CardContent className="pt-4 pb-4">
+                      <div className="flex items-start gap-3">
                         {attachments.length > 1 && (
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50 ml-auto"
-                            onClick={() => removeAttachment(idx)}
-                          >
-                            <XIcon className="w-3 h-3" />
-                          </Button>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label
-                            htmlFor={`attachment-file-${idx}`}
-                            className="text-slate-700 font-medium"
-                          >
-                            Attachment File
-                          </Label>
-                          <div className="relative flex items-center gap-3">
-                            <input
-                              ref={(el) => {
-                                attachmentInputRefs.current[idx] = el;
-                              }}
-                              id={`attachment-file-${idx}`}
-                              type="file"
-                              accept=".doc,.docx,.pdf"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0] || null;
-                                setAttachments((atts) =>
-                                  atts.map((a, i) =>
-                                    i === idx ? { ...a, file } : a
-                                  )
-                                );
-                              }}
-                              className="hidden"
-                            />
+                          <div className="flex flex-col gap-1 pt-6">
                             <Button
                               type="button"
-                              variant="outline"
-                              onClick={() =>
-                                attachmentInputRefs.current[idx]?.click()
-                              }
-                              className="flex items-center gap-2"
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6 text-slate-400 hover:text-slate-600"
+                              onClick={() => moveAttachment(idx, idx - 1)}
+                              disabled={idx === 0}
                             >
-                              <UploadCloudIcon className="w-4 h-4" />
-                              {att.file ? "Replace File" : "Select File"}
+                              <ChevronUpIcon className="w-3 h-3" />
                             </Button>
-                            {att.file && (
-                              <div className="flex items-center gap-2 text-sm text-slate-600">
-                                <FileIcon className="w-4 h-4" />
-                                <span className="truncate max-w-[160px]">
-                                  {att.file.name}
-                                </span>
-                                <Button
-                                  type="button"
-                                  size="icon"
-                                  variant="ghost"
-                                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                                  onClick={() => {
-                                    setAttachments((atts) =>
-                                      atts.map((a, i) =>
-                                        i === idx ? { ...a, file: null } : a
-                                      )
-                                    );
-                                    if (attachmentInputRefs.current[idx])
-                                      attachmentInputRefs.current[idx]!.value =
-                                        "";
-                                  }}
-                                >
-                                  <XIcon className="w-4 h-4" />
-                                </Button>
-                              </div>
+                            <GripVerticalIcon className="w-4 h-4 text-slate-300 mx-auto" />
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6 text-slate-400 hover:text-slate-600"
+                              onClick={() => moveAttachment(idx, idx + 1)}
+                              disabled={idx === attachments.length - 1}
+                            >
+                              <ChevronDownIcon className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        )}
+
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-xs font-medium text-slate-500 bg-slate-200 px-2 py-1 rounded">
+                              ATT{idx + 1}
+                            </span>
+                            {attachments.length > 1 && (
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50 ml-auto"
+                                onClick={() => removeAttachment(idx)}
+                              >
+                                <XIcon className="w-3 h-3" />
+                              </Button>
                             )}
                           </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label
-                            htmlFor={`attachment-keyword-${idx}`}
-                            className="text-slate-700 font-medium"
-                          >
-                            Keyword
-                          </Label>
-                          <Input
-                            id={`attachment-keyword-${idx}`}
-                            type="text"
-                            placeholder="E.g., map, budget, narrative"
-                            maxLength={30}
-                            value={att.keyword}
-                            onChange={(e) =>
-                              setAttachments((atts) =>
-                                atts.map((a, i) =>
-                                  i === idx
-                                    ? { ...a, keyword: e.target.value }
-                                    : a
-                                )
-                              )
-                            }
-                            className="flex-1"
-                          />
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor={`attachment-file-${idx}`}
+                                className="text-slate-700 font-medium"
+                              >
+                                Attachment File
+                              </Label>
+                              <div className="relative flex items-center gap-3">
+                                <input
+                                  ref={(el) => {
+                                    attachmentInputRefs.current[idx] = el;
+                                  }}
+                                  id={`attachment-file-${idx}`}
+                                  type="file"
+                                  accept=".doc,.docx,.pdf"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0] || null;
+                                    setAttachments((atts) =>
+                                      atts.map((a, i) =>
+                                        i === idx ? { ...a, file } : a
+                                      )
+                                    );
+                                  }}
+                                  className="hidden"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() =>
+                                    attachmentInputRefs.current[idx]?.click()
+                                  }
+                                  className="flex items-center gap-2"
+                                >
+                                  <UploadCloudIcon className="w-4 h-4" />
+                                  {att.file ? "Replace File" : "Select File"}
+                                </Button>
+                                {att.file && (
+                                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                                    <FileIcon className="w-4 h-4" />
+                                    <span className="truncate max-w-[160px]">
+                                      {att.file.name}
+                                    </span>
+                                    <Button
+                                      type="button"
+                                      size="icon"
+                                      variant="ghost"
+                                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                      onClick={() => {
+                                        setAttachments((atts) =>
+                                          atts.map((a, i) =>
+                                            i === idx ? { ...a, file: null } : a
+                                          )
+                                        );
+                                        if (attachmentInputRefs.current[idx])
+                                          attachmentInputRefs.current[
+                                            idx
+                                          ]!.value = "";
+                                      }}
+                                    >
+                                      <XIcon className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label
+                                htmlFor={`attachment-keyword-${idx}`}
+                                className="text-slate-700 font-medium"
+                              >
+                                Keyword
+                              </Label>
+                              <Input
+                                id={`attachment-keyword-${idx}`}
+                                type="text"
+                                placeholder="E.g., map, budget, narrative"
+                                maxLength={30}
+                                value={att.keyword}
+                                onChange={(e) =>
+                                  setAttachments((atts) =>
+                                    atts.map((a, i) =>
+                                      i === idx
+                                        ? { ...a, keyword: e.target.value }
+                                        : a
+                                    )
+                                  )
+                                }
+                                className="flex-1"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addAttachment}
-              disabled={
-                attachments.length > 0 &&
-                (!attachments[attachments.length - 1].file ||
-                  !attachments[attachments.length - 1].keyword)
-              }
-              className="w-full border-dashed border-2 hover:border-solid hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <PlusIcon className="w-4 h-4 mr-2" />
-              Add Another Attachment
-            </Button>
-            {attachments.length > 0 &&
-              (!attachments[attachments.length - 1].file ||
-                !attachments[attachments.length - 1].keyword) && (
-                <p className="text-xs text-amber-600 text-center">
-                  Complete the current attachment before adding another
-                </p>
-              )}
+                    </CardContent>
+                  </Card>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addAttachment}
+                  disabled={
+                    attachments.length > 0 &&
+                    (!attachments[attachments.length - 1].file ||
+                      !attachments[attachments.length - 1].keyword)
+                  }
+                  className="w-full border-dashed border-2 hover:border-solid hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <PlusIcon className="w-4 h-4 mr-2" />
+                  Add Another Attachment
+                </Button>
+                {attachments.length > 0 &&
+                  (!attachments[attachments.length - 1].file ||
+                    !attachments[attachments.length - 1].keyword) && (
+                    <p className="text-xs text-amber-600 text-center">
+                      Complete the current attachment before adding another
+                    </p>
+                  )}
+              </>
+            )}
           </CardContent>
         </Card>
 
