@@ -27,6 +27,9 @@ import {
   CheckCircleIcon,
   UploadCloudIcon,
   InfoIcon,
+  GripVerticalIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
 } from "lucide-react";
 import {
   Tooltip,
@@ -184,6 +187,15 @@ export default function HomePage() {
     setAgendaTitle(title);
     setTitleTruncated(wasTruncated);
   }, [agendaDesc]);
+
+  const moveAttachment = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= attachments.length) return;
+
+    const newAttachments = [...attachments];
+    const [movedItem] = newAttachments.splice(fromIndex, 1);
+    newAttachments.splice(toIndex, 0, movedItem);
+    setAttachments(newAttachments);
+  };
 
   const addAttachment = () => {
     // Only allow adding if the last attachment has both file and keyword
@@ -494,106 +506,142 @@ export default function HomePage() {
                 className="border border-slate-200 bg-slate-50/50"
               >
                 <CardContent className="pt-4 pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor={`attachment-file-${idx}`}
-                        className="text-slate-700 font-medium"
-                      >
-                        Attachment File
-                      </Label>
-                      <div className="relative flex items-center gap-3">
-                        <input
-                          ref={(el) => {
-                            attachmentInputRefs.current[idx] = el;
-                          }}
-                          id={`attachment-file-${idx}`}
-                          type="file"
-                          accept=".doc,.docx,.pdf"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0] || null;
-                            setAttachments((atts) =>
-                              atts.map((a, i) =>
-                                i === idx ? { ...a, file } : a
-                              )
-                            );
-                          }}
-                          className="hidden"
-                        />
+                  <div className="flex items-start gap-3">
+                    {/* Reorder controls */}
+                    {attachments.length > 1 && (
+                      <div className="flex flex-col gap-1 pt-6">
                         <Button
                           type="button"
-                          variant="outline"
-                          onClick={() =>
-                            attachmentInputRefs.current[idx]?.click()
-                          }
-                          className="flex items-center gap-2"
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6 text-slate-400 hover:text-slate-600"
+                          onClick={() => moveAttachment(idx, idx - 1)}
+                          disabled={idx === 0}
                         >
-                          <UploadCloudIcon className="w-4 h-4" />
-                          {att.file ? "Replace File" : "Select File"}
+                          <ChevronUpIcon className="w-3 h-3" />
                         </Button>
-                        {att.file && (
-                          <div className="flex items-center gap-2 text-sm text-slate-600">
-                            <FileIcon className="w-4 h-4" />
-                            <span className="truncate max-w-[160px]">
-                              {att.file.name}
-                            </span>
-                            <Button
-                              type="button"
-                              size="icon"
-                              variant="ghost"
-                              className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                              onClick={() => {
-                                setAttachments((atts) =>
-                                  atts.map((a, i) =>
-                                    i === idx ? { ...a, file: null } : a
-                                  )
-                                );
-                                if (attachmentInputRefs.current[idx])
-                                  attachmentInputRefs.current[idx]!.value = "";
-                              }}
-                            >
-                              <XIcon className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        )}
+                        <GripVerticalIcon className="w-4 h-4 text-slate-300 mx-auto" />
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6 text-slate-400 hover:text-slate-600"
+                          onClick={() => moveAttachment(idx, idx + 1)}
+                          disabled={idx === attachments.length - 1}
+                        >
+                          <ChevronDownIcon className="w-3 h-3" />
+                        </Button>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor={`attachment-keyword-${idx}`}
-                        className="text-slate-700 font-medium"
-                      >
-                        Keyword
-                      </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id={`attachment-keyword-${idx}`}
-                          type="text"
-                          placeholder="E.g., map, budget, narrative"
-                          maxLength={30}
-                          value={att.keyword}
-                          onChange={(e) =>
-                            setAttachments((atts) =>
-                              atts.map((a, i) =>
-                                i === idx
-                                  ? { ...a, keyword: e.target.value }
-                                  : a
-                              )
-                            )
-                          }
-                          className="flex-1"
-                        />
+                    )}
+
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-xs font-medium text-slate-500 bg-slate-200 px-2 py-1 rounded">
+                          att{idx + 1}
+                        </span>
                         {attachments.length > 1 && (
                           <Button
                             type="button"
                             size="icon"
                             variant="ghost"
-                            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                            className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50 ml-auto"
                             onClick={() => removeAttachment(idx)}
                           >
-                            <XIcon className="w-4 h-4" />
+                            <XIcon className="w-3 h-3" />
                           </Button>
                         )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`attachment-file-${idx}`}
+                            className="text-slate-700 font-medium"
+                          >
+                            Attachment File
+                          </Label>
+                          <div className="relative flex items-center gap-3">
+                            <input
+                              ref={(el) => {
+                                attachmentInputRefs.current[idx] = el;
+                              }}
+                              id={`attachment-file-${idx}`}
+                              type="file"
+                              accept=".doc,.docx,.pdf"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0] || null;
+                                setAttachments((atts) =>
+                                  atts.map((a, i) =>
+                                    i === idx ? { ...a, file } : a
+                                  )
+                                );
+                              }}
+                              className="hidden"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() =>
+                                attachmentInputRefs.current[idx]?.click()
+                              }
+                              className="flex items-center gap-2"
+                            >
+                              <UploadCloudIcon className="w-4 h-4" />
+                              {att.file ? "Replace File" : "Select File"}
+                            </Button>
+                            {att.file && (
+                              <div className="flex items-center gap-2 text-sm text-slate-600">
+                                <FileIcon className="w-4 h-4" />
+                                <span className="truncate max-w-[160px]">
+                                  {att.file.name}
+                                </span>
+                                <Button
+                                  type="button"
+                                  size="icon"
+                                  variant="ghost"
+                                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  onClick={() => {
+                                    setAttachments((atts) =>
+                                      atts.map((a, i) =>
+                                        i === idx ? { ...a, file: null } : a
+                                      )
+                                    );
+                                    if (attachmentInputRefs.current[idx])
+                                      attachmentInputRefs.current[idx]!.value =
+                                        "";
+                                  }}
+                                >
+                                  <XIcon className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`attachment-keyword-${idx}`}
+                            className="text-slate-700 font-medium"
+                          >
+                            Keyword
+                          </Label>
+                          <Input
+                            id={`attachment-keyword-${idx}`}
+                            type="text"
+                            placeholder="E.g., map, budget, narrative"
+                            maxLength={30}
+                            value={att.keyword}
+                            onChange={(e) =>
+                              setAttachments((atts) =>
+                                atts.map((a, i) =>
+                                  i === idx
+                                    ? { ...a, keyword: e.target.value }
+                                    : a
+                                )
+                              )
+                            }
+                            className="flex-1"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -650,28 +698,77 @@ export default function HomePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="bg-slate-50 rounded-lg p-4 space-y-2">
+            <div className="bg-slate-50 rounded-lg p-4 space-y-6">
               {renamedFiles.length === 0 ? (
                 <div className="text-center py-8 text-slate-400">
                   <FileIcon className="w-12 h-12 mx-auto mb-3 opacity-30" />
                   <p className="text-sm">No files uploaded yet</p>
                 </div>
               ) : (
-                renamedFiles.map((f) => (
-                  <div
-                    key={f.old}
-                    className="flex items-center gap-3 p-3 bg-white rounded-md border border-slate-200 shadow-sm"
-                  >
-                    <div className="flex-1 text-sm">
-                      <div className="text-slate-600 font-medium">{f.old}</div>
-                      <div className="text-xs text-slate-400 mt-1">→</div>
-                      <div className="font-mono text-slate-800 bg-slate-100 px-2 py-1 rounded text-xs mt-1">
-                        {f.new}
+                <>
+                  {/* Agenda Summary Section */}
+                  {agendaFile && agendaTitle && (
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                        <div className="w-4 h-4 bg-orange-500 rounded-sm"></div>
+                        Agenda Summary
+                      </h4>
+                      <div className="flex items-center gap-3 p-3 bg-white rounded-md border border-slate-200 shadow-sm">
+                        <div className="flex-1 text-sm">
+                          <div className="text-slate-600 font-medium">
+                            {agendaFile.name}
+                          </div>
+                          <div className="text-xs text-slate-400 mt-1">→</div>
+                          <div className="font-mono text-slate-800 bg-slate-100 px-2 py-1 rounded text-xs mt-1">
+                            {`as_${meetingDate}_${agendaTitle}.${agendaFile.name
+                              .split(".")
+                              .pop()}`}
+                          </div>
+                        </div>
+                        <CheckCircleIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
                       </div>
                     </div>
-                    <CheckCircleIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  </div>
-                ))
+                  )}
+
+                  {/* Attachments Section */}
+                  {renamedFiles.filter((f) => f.new.startsWith("att")).length >
+                    0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                        <div className="w-4 h-4 bg-purple-500 rounded-sm"></div>
+                        Attachments (
+                        {
+                          renamedFiles.filter((f) => f.new.startsWith("att"))
+                            .length
+                        }
+                        )
+                      </h4>
+                      <div className="space-y-2">
+                        {renamedFiles
+                          .filter((f) => f.new.startsWith("att"))
+                          .map((f) => (
+                            <div
+                              key={f.old}
+                              className="flex items-center gap-3 p-3 bg-white rounded-md border border-slate-200 shadow-sm"
+                            >
+                              <div className="flex-1 text-sm">
+                                <div className="text-slate-600 font-medium">
+                                  {f.old}
+                                </div>
+                                <div className="text-xs text-slate-400 mt-1">
+                                  →
+                                </div>
+                                <div className="font-mono text-slate-800 bg-slate-100 px-2 py-1 rounded text-xs mt-1">
+                                  {f.new}
+                                </div>
+                              </div>
+                              <CheckCircleIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </CardContent>
