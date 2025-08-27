@@ -39,43 +39,108 @@ const MEETING_DATES = [
   "02-11-2026",
 ];
 
-const COMMON_KEYWORDS = [
-  "budget",
-  "map",
-  "grant",
-  "application",
-  "transportation",
-  "public comments",
-  "conformance",
-  "review",
-  "narrative",
-  "plan",
-  "audit",
-  "election",
-  "committee",
-  "funding",
-  "amendment",
-  "position",
-  "presentation",
-  "procurement",
+// Non-permitted words (stop words) to be stripped from titles
+const STOP_WORDS = [
+  "the",
+  "a",
+  "an",
+  "and",
+  "or",
+  "but",
+  "in",
+  "on",
+  "at",
+  "to",
+  "for",
+  "of",
+  "with",
+  "by",
+  "from",
+  "is",
+  "are",
+  "was",
+  "were",
+  "be",
+  "been",
+  "being",
+  "have",
+  "has",
+  "had",
+  "do",
+  "does",
+  "did",
+  "will",
+  "would",
+  "could",
+  "should",
+  "may",
+  "might",
+  "can",
+  "this",
+  "that",
+  "these",
+  "those",
+  "it",
+  "its",
+  "their",
+  "there",
+  "they",
+  "them",
+  "we",
+  "us",
+  "our",
+  "you",
+  "your",
+  "i",
+  "me",
+  "my",
+  "he",
+  "him",
+  "his",
+  "she",
+  "her",
+  "hers",
 ];
 
 function sanitizeForFilename(str: string) {
   return str
     .toLowerCase()
     .replace(/[^a-z0-9\-_\s]/g, "")
-    .replace(/\s+/g, "-")
-    .substring(0, 30);
+    .replace(/\s+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
 }
 
-function suggestKeyword(description: string) {
-  if (!description) return "";
-  const found = COMMON_KEYWORDS.find((kw) =>
-    description.toLowerCase().includes(kw)
-  );
-  return found
-    ? found
-    : sanitizeForFilename(description.split(" ")[0] || "item");
+function generateTitle(description: string): {
+  title: string;
+  wasTruncated: boolean;
+} {
+  if (!description.trim()) return { title: "", wasTruncated: false };
+
+  // Split into words and filter out stop words
+  const words = description
+    .toLowerCase()
+    .replace(/[^a-z0-9\-\s]/g, " ")
+    .split(/\s+/)
+    .filter((word) => word.length > 0 && !STOP_WORDS.includes(word));
+
+  if (words.length === 0) return { title: "", wasTruncated: false };
+
+  // Build title up to 25 characters, ensuring we don't break words
+  let title = "";
+  let wasTruncated = false;
+
+  for (const word of words) {
+    const potentialTitle = title ? `${title}_${word}` : word;
+    if (potentialTitle.length <= 25) {
+      title = potentialTitle;
+    } else {
+      wasTruncated = true;
+      break;
+    }
+  }
+
+  return { title: title || words[0].substring(0, 25), wasTruncated };
 }
 
 type AttachmentInput = {
@@ -89,6 +154,7 @@ export default function HomePage() {
   const [agendaFile, setAgendaFile] = useState<File | null>(null);
   const [agendaDesc, setAgendaDesc] = useState("");
   const [agendaTitle, setAgendaTitle] = useState("");
+  const [titleTruncated, setTitleTruncated] = useState(false);
   const [attachments, setAttachments] = useState<AttachmentInput[]>([
     { file: null, keyword: "" },
   ]);
@@ -104,14 +170,22 @@ export default function HomePage() {
   React.useEffect(() => {
     if (!agendaDesc) {
       setAgendaTitle("");
+      setTitleTruncated(false);
       return;
     }
-    const suggested = suggestKeyword(agendaDesc);
-    setAgendaTitle(suggested);
+    const { title, wasTruncated } = generateTitle(agendaDesc);
+    setAgendaTitle(title);
+    setTitleTruncated(wasTruncated);
   }, [agendaDesc]);
 
-  const addAttachment = () =>
+  const addAttachment = () => {
+    // Only allow adding if the last attachment has both file and keyword
+    const lastAttachment = attachments[attachments.length - 1];
+    if (lastAttachment && (!lastAttachment.file || !lastAttachment.keyword)) {
+      return; // Don't add if last attachment is incomplete
+    }
     setAttachments([...attachments, { file: null, keyword: "" }]);
+  };
   const removeAttachment = (idx: number) => {
     if (attachmentInputRefs.current[idx])
       attachmentInputRefs.current[idx]!.value = "";
@@ -128,17 +202,18 @@ export default function HomePage() {
       const ext = agendaFile.name.split(".").pop();
       files.push({
         old: agendaFile.name,
-        new: `AS_${meetingDate}_${sanitizeForFilename(agendaTitle)}.${ext}`,
+        new: `as_${meetingDate}_${agendaTitle}.${ext}`,
       });
     }
     attachments.forEach((att, i) => {
       if (att.file && att.keyword) {
         const ext = att.file.name.split(".").pop();
+        const sanitizedKeyword = sanitizeForFilename(att.keyword);
         files.push({
           old: att.file.name,
-          new: `ATT${i + 1}_${meetingDate}_${sanitizeForFilename(
-            att.keyword
-          )}.${ext}`,
+          new: `att${
+            i + 1
+          }_${meetingDate}_${agendaTitle}_${sanitizedKeyword}.${ext}`,
         });
       }
     });
@@ -156,16 +231,14 @@ export default function HomePage() {
 
       const zip = new JSZip();
       const agendaExt = agendaFile.name.split(".").pop();
-      zip.file(
-        `AS_${meetingDate}_${sanitizeForFilename(agendaTitle)}.${agendaExt}`,
-        agendaFile
-      );
+      zip.file(`as_${meetingDate}_${agendaTitle}.${agendaExt}`, agendaFile);
       attachments.forEach((att, i) => {
         const ext = att.file!.name.split(".").pop();
+        const sanitizedKeyword = sanitizeForFilename(att.keyword);
         zip.file(
-          `ATT${i + 1}_${meetingDate}_${sanitizeForFilename(
-            att.keyword
-          )}.${ext}`,
+          `att${
+            i + 1
+          }_${meetingDate}_${agendaTitle}_${sanitizedKeyword}.${ext}`,
           att.file as File
         );
       });
@@ -173,7 +246,7 @@ export default function HomePage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `MeetingFiles_${meetingDate}.zip`;
+      link.download = `meeting_files_${meetingDate}.zip`;
       link.click();
       setLoading(false);
     } catch (e) {
@@ -191,7 +264,7 @@ export default function HomePage() {
       <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-3 text-slate-800">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">
               1
             </div>
             Meeting Information
@@ -249,7 +322,7 @@ export default function HomePage() {
       <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-3 text-slate-800">
-            <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-green-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">
               2
             </div>
             Agenda Summary
@@ -312,27 +385,39 @@ export default function HomePage() {
               id="agenda-desc"
               type="text"
               placeholder="E.g., Regional Grant Application"
-              maxLength={250}
+              maxLength={50}
               value={agendaDesc}
               onChange={(e) => setAgendaDesc(e.target.value)}
             />
-            <p className="text-xs text-slate-500">Maximum 50 words</p>
+            <p className="text-xs text-slate-500">Maximum 50 characters</p>
+            {titleTruncated && (
+              <div className="flex items-center gap-2 text-amber-600 text-xs bg-amber-50 border border-amber-200 rounded-md p-2 mt-2">
+                <AlertCircleIcon className="w-4 h-4 flex-shrink-0" />
+                <span>
+                  Title was truncated to fit 25 character limit. Consider
+                  shortening your description for a more complete title.
+                </span>
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <Label
               htmlFor="agenda-title"
               className="text-slate-700 font-medium"
             >
-              Suggested Title
+              Generated Title (Auto-generated)
             </Label>
             <Input
               id="agenda-title"
               type="text"
               value={agendaTitle}
-              onChange={(e) => setAgendaTitle(e.target.value)}
+              readOnly
+              disabled
+              className="bg-slate-100 text-slate-600 cursor-not-allowed"
             />
             <p className="text-xs text-slate-500">
-              Auto-filled from your description. You can edit if needed.
+              Auto-generated from your description. To change this, edit the
+              description above.
             </p>
           </div>
         </CardContent>
@@ -341,7 +426,7 @@ export default function HomePage() {
       <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-3 text-slate-800">
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">
               3
             </div>
             Attachments
@@ -428,7 +513,7 @@ export default function HomePage() {
                         id={`attachment-keyword-${idx}`}
                         type="text"
                         placeholder="E.g., map, budget, narrative"
-                        maxLength={20}
+                        maxLength={30}
                         value={att.keyword}
                         onChange={(e) =>
                           setAttachments((atts) =>
@@ -460,18 +545,30 @@ export default function HomePage() {
             type="button"
             variant="outline"
             onClick={addAttachment}
-            className="w-full border-dashed border-2 hover:border-solid hover:bg-slate-50"
+            disabled={
+              attachments.length > 0 &&
+              (!attachments[attachments.length - 1].file ||
+                !attachments[attachments.length - 1].keyword)
+            }
+            className="w-full border-dashed border-2 hover:border-solid hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <PlusIcon className="w-4 h-4 mr-2" />
             Add Another Attachment
           </Button>
+          {attachments.length > 0 &&
+            (!attachments[attachments.length - 1].file ||
+              !attachments[attachments.length - 1].keyword) && (
+              <p className="text-xs text-amber-600 text-center">
+                Complete the current attachment before adding another
+              </p>
+            )}
         </CardContent>
       </Card>
 
       <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-3 text-slate-800">
-            <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-8 h-8 bg-gradient-to-r from-orange-600 to-orange-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">
               4
             </div>
             Preview Renamed Files
@@ -524,7 +621,7 @@ export default function HomePage() {
               !agendaTitle ||
               attachments.some((a) => !a.file || !a.keyword)
             }
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-6 text-lg shadow-lg disabled:opacity-50 transition-all duration-200"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-6 text-lg shadow-lg disabled:opacity-50 transition-all duration-200"
             size="lg"
           >
             {loading ? (
