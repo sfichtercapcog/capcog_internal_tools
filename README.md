@@ -222,9 +222,9 @@ npm run type-check   # Run TypeScript compiler check
 
 ## Contributing
 
-This is an internal tool for RPS teams at CAPCOG. For feature requests, bug reports, or contributions:
+This is an internal tool for CAPCOG RPS staff. For feature requests, bug reports, or contributions:
 
-1. **Internal Team Members**: Contact the development team directly
+1. **Internal Team Members**: Contact the author directly
 2. **External Contributors**: Please reach out to the author before making contributions
 
 ### Bug Reports
@@ -238,22 +238,22 @@ When reporting bugs, please include:
 
 ## License
 
-**Internal Use Only** - This software is proprietary and intended solely for internal use by CAPCOG (Capital Area Council of Governments) staff. Not for public distribution.
+**Internal Use Only** - This software is proprietary and intended solely for internal use by CAPCOG RPS staff. Not for public distribution.
 
 ## Author
 
 **Simon Fichter**  
 _Transportation Planner_  
 Capital Area Council of Governments (CAPCOG)  
-📧 [Contact via CAPCOG](https://www.capcog.org/)
+📧 [Contact via email](sfichter@capcog.org)
 
 ### About the Author
 
-Simon Fichter is a Transportation Planner at CAPCOG, specializing in workflow automation and process improvement for regional planning activities. This tool was developed to streamline internal document management processes and ensure consistency across meeting materials.
+Simon Fichter is a Transportation Planner at CAPCOG, with a special interest in workflow automation and process improvement. This tool was developed to streamline internal document management processes and ensure consistency across meeting materials.
 
 ## Acknowledgments
 
-- **CAPCOG Leadership** for supporting internal tool development initiatives
+- **CAPCOG RPS Leadership** for supporting internal tool development initiatives
 - **RPS Team** for providing requirements and testing feedback
 - **shadcn/ui** for the excellent component library
 - **Next.js Team** for the robust React framework
@@ -263,7 +263,7 @@ Simon Fichter is a Transportation Planner at CAPCOG, specializing in workflow au
 
 <div align="center">
 
-**Built with ❤️ for CAPCOG Internal Teams**
+**Built with ❤️ for CAPCOG RPS**
 
 _Streamlining document management workflows since 2025_
 
